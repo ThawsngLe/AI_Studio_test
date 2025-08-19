@@ -2,7 +2,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { CanvasRef, LoadingStep, Tool } from './types';
 import { DEFAULT_COLOR, DEFAULT_WIDTH } from './constants';
-import { describeSketch, generateImage } from './services/geminiService';
+import { describeSketch, generateImage, translateToVietnamese } from './services/geminiService';
 import Header from './components/Header';
 import Canvas from './components/Canvas';
 import Toolbar from './components/Toolbar';
@@ -39,11 +39,16 @@ const App: React.FC = () => {
     try {
       const imageBase64 = imageDataUrl.split(',')[1];
       const description = await describeSketch(imageBase64);
-      setAiPrompt(description);
 
       setLoadingStep(LoadingStep.GENERATING);
-      const newImageBase64 = await generateImage(description);
+      
+      const [newImageBase64, translatedDescription] = await Promise.all([
+        generateImage(description),
+        translateToVietnamese(description),
+      ]);
+
       setGeneratedImage(`data:image/jpeg;base64,${newImageBase64}`);
+      setAiPrompt(translatedDescription);
 
     } catch (err) {
       console.error(err);

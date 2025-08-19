@@ -1,3 +1,4 @@
+
 import { GoogleGenAI } from "@google/genai";
 
 if (!process.env.API_KEY) {
@@ -66,5 +67,29 @@ export const generateImage = async (prompt: string): Promise<string> => {
   } catch (error) {
     console.error("Error generating image:", error);
     throw new Error("Không thể tạo ảnh. Họa sĩ AI có lẽ đang nghỉ giải lao.");
+  }
+};
+
+export const translateToVietnamese = async (text: string): Promise<string> => {
+  try {
+    const response = await ai.models.generateContent({
+      model: TEXT_MODEL,
+      contents: `"${text}"`,
+      config: {
+        systemInstruction: `You are an expert translator. You will receive English text. Your task is to translate it into Vietnamese, preserving the artistic and descriptive tone of the original. Respond ONLY with the raw translated Vietnamese text. Do not include any extra words, explanations, introductory phrases, or markdown formatting like quotes.`,
+        temperature: 0.2,
+      },
+    });
+
+    const translatedText = response.text;
+    if (!translatedText) {
+      console.warn("AI could not translate the prompt. Falling back to original text.");
+      return text;
+    }
+    return translatedText.trim();
+  } catch (error) {
+    console.error("Error translating text:", error);
+    // Fallback to original text if translation fails
+    return text;
   }
 };
